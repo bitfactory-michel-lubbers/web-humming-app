@@ -94,6 +94,24 @@ Read this before expecting `--apply` to do anything:
 > up to actually drive it — right now it deliberately stops short of
 > guessing at drag coordinates for a control that might not exist.
 
+## 5. Or: a bookmarklet, no local install at all
+
+If you don't want to run anything locally, `web/index.html` is a bookmarklet
+install page instead: you log into instagram.com yourself as normal, click a
+bookmark while on your profile, and the code runs directly inside that
+already-authenticated tab — no separate login, no server, this repo never
+sees your session. It currently only reports cover suggestions in an on-page
+panel (no auto-apply yet, for the same reason noted above).
+
+This is genuinely something GitHub Pages can host, since it's just static
+files — but this repo's Pages workflow (`.github/workflows/pages.yml`) only
+deploys on pushes to `main`, so it'll be live at
+`<pages-url>/instagram-post-curator/web/` once this branch is merged. Until
+then, test it by serving the folder locally (`npx serve
+instagram-post-curator/web`) and opening it in a browser — bookmarklets work
+the same regardless of where the install page is hosted, since only the
+Instagram tab's origin matters once it's clicked.
+
 ## Notes and limits
 
 - This is meant for reviewing **your own** account. Don't point it at other

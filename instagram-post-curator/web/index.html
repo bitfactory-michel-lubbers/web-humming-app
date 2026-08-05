@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>Instagram Cover Picker</title>
+<style>
+  body { max-width: 640px; margin: 40px auto; padding: 0 20px; font: 15px/1.6 -apple-system, sans-serif; color: #222; }
+  h1 { font-size: 22px; }
+  .bookmarklet { display: inline-block; padding: 10px 18px; background: #111; color: #fff; border-radius: 8px; text-decoration: none; font-weight: 600; cursor: grab; }
+  code, pre { background: #f2f2f2; padding: 2px 6px; border-radius: 4px; }
+  pre { padding: 12px; overflow-x: auto; }
+  ol { padding-left: 20px; }
+  .warn { background: #fff4e5; border: 1px solid #e8c07d; border-radius: 8px; padding: 12px 16px; margin: 16px 0; }
+</style>
+</head>
+<body>
+  <h1>Instagram Cover Picker</h1>
+  <p>
+    A bookmarklet that runs inside your own, already-logged-in Instagram tab —
+    no separate login, no server, nothing here ever sees your session. It scans
+    your carousel posts and suggests which slide would make the strongest cover.
+  </p>
+
+  <div class="warn">
+    <strong>This page hosts nothing that touches Instagram.</strong> The bookmarklet
+    below only starts running once you click it <em>while you're already on
+    instagram.com, logged in as yourself</em>. Everything happens in your own
+    browser tab from that point on.
+  </div>
+
+  <h2>1. Install the bookmarklet</h2>
+  <p>Drag this link to your bookmarks bar:</p>
+  <a id="bookmarklet" class="bookmarklet" href="#">📌 Pick Instagram Covers</a>
+  <p>
+    (If dragging doesn't work, right-click your bookmarks bar → Add page →
+    paste the link shown below as the URL.)
+  </p>
+
+  <h2>2. Use it</h2>
+  <ol>
+    <li>Go to <code>instagram.com</code> and log in normally, as you always do.</li>
+    <li>Open your own profile page.</li>
+    <li>Click the <strong>Pick Instagram Covers</strong> bookmark.</li>
+    <li>First time only: it'll ask for an Anthropic or OpenAI API key (stored only in
+      your browser's <code>localStorage</code> — never sent anywhere except directly
+      to that provider's API from your own browser).</li>
+    <li>A panel appears in the corner of the page showing progress and, for each
+      carousel post found, which slide it recommends as the cover.</li>
+  </ol>
+
+  <div class="warn">
+    <strong>What this version does not do yet:</strong> it only reports suggestions —
+    it does not change any post. Actually changing a carousel's cover depends on
+    whether Instagram's "Edit" screen even exposes that (see the main
+    <a href="../README.md">README</a>) — that's still unconfirmed, so this cut
+    stops at "here's what I'd recommend" rather than guessing at how to apply it.
+  </div>
+
+  <p style="font-size:13px;color:#666;">
+    Note: if you're viewing this page by double-clicking the local file, some
+    browsers block the fetch below over <code>file://</code>. Serve this folder
+    with <code>npx serve</code> (or open it via the real GitHub Pages URL once
+    merged) if the bookmarklet link stays broken.
+  </p>
+
+  <h2>Source</h2>
+  <p>The bookmarklet's full source (nothing hidden/minified beyond wrapping) is in
+    <a href="./runtime.js"><code>runtime.js</code></a> next to this page.</p>
+
+<script>
+  fetch("./runtime.js")
+    .then((r) => r.text())
+    .then((code) => {
+      document.getElementById("bookmarklet").href = "javascript:" + encodeURIComponent(code);
+    })
+    .catch(() => {
+      document.getElementById("bookmarklet").textContent = "Couldn't load runtime.js — open it directly and paste manually.";
+    });
+</script>
+</body>
+</html>
