@@ -129,6 +129,7 @@
       <div style="flex:1; min-width:180px;">
         <label for="instrumentSelect">Instrument for this track</label>
         <select id="instrumentSelect">
+          <option value="vocals">Vocals</option>
           <option value="piano">Piano</option>
           <option value="guitar">Guitar</option>
           <option value="violin">Violin</option>
@@ -195,6 +196,7 @@
 const noteNames = ['C','C#','D','D#','E','F','F#','G','G#','A','A#','B'];
 
 const instruments = {
+  vocals: {label:'Vocals',      clef:'treble', shift:0},
   piano:  {label:'Piano',       clef:'treble', shift:0},
   guitar: {label:'Guitar',      clef:'treble', shift:0},
   violin: {label:'Violin',      clef:'treble', shift:0},
