@@ -1,0 +1,14 @@
+{
+  "name": "instagram-post-curator",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Log in to Instagram in a real local browser and export your own profile grid (thumbnails, order, caption previews) so an AI assistant can suggest a more cohesive post order.",
+  "type": "module",
+  "scripts": {
+    "login": "node src/login.js",
+    "scrape": "node src/scrape.js"
+  },
+  "dependencies": {
+    "playwright": "^1.47.0"
+  }
+}
