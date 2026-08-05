@@ -235,47 +235,47 @@ function hideMicBanner(){
 }
 
 // Run an environment check as soon as the page loads, before the user even clicks record.
+// IMPORTANT: this function only ever gives an advisory heads-up banner based on heuristics
+// (location.protocol, isSecureContext, iframe nesting). It must never be the thing that decides
+// whether mic access works — only a real navigator.mediaDevices.getUserMedia() call can determine
+// that, since browsers sometimes allow it in situations this heuristic can't predict (e.g. an
+// iframe with allow="microphone"). The only case that hard-blocks the button is when the API
+// itself doesn't exist to call.
+let lastEnvEmbedded = false;
+
 function checkEnvironment(){
   const isLocalhost = ['localhost','127.0.0.1','[::1]'].includes(location.hostname);
   const isSecure = window.isSecureContext || isLocalhost;
   const hasMediaDevices = !!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia);
   let isEmbedded = false;
   try{ isEmbedded = window.self !== window.top; }catch(e){ isEmbedded = true; } // cross-origin access throws -> definitely embedded
-
-  if (location.protocol === 'file:'){
-    showMicBanner('warn',
-      `⚠️ This file is open directly from disk (<code>file://</code>). Most browsers block microphone access on <code>file://</code> pages entirely, even before any permission popup appears.<br><br>
-      <strong>Fix:</strong> serve this folder over local HTTP instead, e.g. run <code>python3 -m http.server</code> in the folder and open <code>http://localhost:8000/hum-to-sheet-music.html</code> — or upload it to any static host (GitHub Pages, Netlify, etc.). Or use the file-upload option below instead.`);
-    recordBtn.disabled = true;
-    return false;
-  }
-
-  if (isEmbedded){
-    showMicBanner('warn',
-      `⚠️ This page is running inside another page (an iframe/embedded preview). Embedded pages are usually not granted microphone access by the browser, no matter what your browser's own mic permission setting is — and no permission popup will appear at all in that case.<br><br>
-      <strong>Fix:</strong> open this file in its own top-level browser tab (not inside an embedded preview), or use the file-upload option below instead, which works regardless.`);
-    recordBtn.disabled = true;
-    return false;
-  }
-
-  if (!isSecure){
-    showMicBanner('error',
-      `⚠️ This page is loaded over an insecure origin (not HTTPS and not localhost). Browsers require a secure context for microphone access.<br><br>
-      <strong>Fix:</strong> open this page via <code>https://</code> or <code>http://localhost</code>.`);
-    recordBtn.disabled = true;
-    return false;
-  }
+  lastEnvEmbedded = isEmbedded;
 
   if (!hasMediaDevices){
     showMicBanner('error', `⚠️ This browser doesn't expose microphone APIs on this page — possibly because it's embedded in a restricted preview/iframe that doesn't allow microphone access.<br><br>
       <strong>Fix:</strong> open the HTML file directly in a full browser tab (download it and open it, rather than viewing it inside an embedded preview).`);
     recordBtn.disabled = true;
-    return false;
+    return false; // there is genuinely no API to call here — nothing to attempt
   }
 
-  hideMicBanner();
+  if (location.protocol === 'file:'){
+    showMicBanner('warn',
+      `⚠️ This file is open directly from disk (<code>file://</code>). Most browsers block microphone access on <code>file://</code> pages, so the request below will likely be rejected before any permission popup appears — but it will still genuinely be attempted, and the real browser response is shown below if it fails.<br><br>
+      <strong>Fix:</strong> serve this folder over local HTTP instead, e.g. run <code>python3 -m http.server</code> in the folder and open <code>http://localhost:8000/hum-to-sheet-music.html</code> — or upload it to any static host (GitHub Pages, Netlify, etc.). Or use the file-upload option below instead.`);
+  } else if (isEmbedded){
+    showMicBanner('warn',
+      `⚠️ This page is running inside another page (an iframe/embedded preview). Embedded pages are often not granted microphone access, and no permission popup may appear at all — but the button below will still make a real request, and the real browser response is shown below if it's blocked.<br><br>
+      <strong>Fix:</strong> open this file in its own top-level browser tab (not inside an embedded preview), or use the file-upload option below instead, which works regardless.`);
+  } else if (!isSecure){
+    showMicBanner('error',
+      `⚠️ This page is loaded over an insecure origin (not HTTPS and not localhost). Browsers require a secure context for microphone access, so the request below will likely be rejected — but it will still genuinely be attempted.<br><br>
+      <strong>Fix:</strong> open this page via <code>https://</code> or <code>http://localhost</code>.`);
+  } else {
+    hideMicBanner();
+  }
+
   recordBtn.disabled = false;
-  return true;
+  return true; // a real getUserMedia() call is always possible to attempt from here
 }
 
 checkEnvironment();
@@ -323,9 +323,15 @@ checkMicBtn.addEventListener('click', async () => {
 function reportMicError(err){
   const name = err && err.name;
   if (name === 'NotAllowedError' || name === 'PermissionDeniedError'){
-    showMicBanner('error',
-      `⚠️ Microphone permission was denied.<br><br>
-      <strong>Fix:</strong> click the 🔒/ⓘ icon in your browser's address bar, find "Microphone", and set it to "Allow" — then reload the page and try again. If you dismissed the permission popup instead of choosing Block, just click "Check microphone access" again.`);
+    if (lastEnvEmbedded){
+      showMicBanner('error',
+        `⚠️ The browser rejected the microphone request (<code>${name}</code>). Since this page is embedded in another page, this could mean either you (or a previous visit) denied the permission, <em>or</em> the embedding page silently blocked microphone access via its iframe policy before any popup could even appear — both look identical to this page.<br><br>
+        <strong>Fix:</strong> open this file in its own top-level browser tab (not inside an embedded preview) and try "Check microphone access" again — if it's still rejected there, then it really is a denied permission, fixable via the 🔒/ⓘ icon in your browser's address bar.`);
+    } else {
+      showMicBanner('error',
+        `⚠️ Microphone permission was denied.<br><br>
+        <strong>Fix:</strong> click the 🔒/ⓘ icon in your browser's address bar, find "Microphone", and set it to "Allow" — then reload the page and try again. If you dismissed the permission popup instead of choosing Block, just click "Check microphone access" again.`);
+    }
   } else if (name === 'NotFoundError' || name === 'DevicesNotFoundError'){
     showMicBanner('error',
       `⚠️ No microphone was found on this device. Make sure a mic is connected/enabled and not disabled in your OS sound settings.`);
