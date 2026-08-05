@@ -6,7 +6,8 @@
   "type": "module",
   "scripts": {
     "login": "node src/login.js",
-    "scrape": "node src/scrape.js"
+    "scrape": "node src/scrape.js",
+    "auto-cover": "node src/auto-cover.js"
   },
   "dependencies": {
     "playwright": "^1.47.0"

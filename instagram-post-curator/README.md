@@ -61,6 +61,57 @@ out similar shots, etc. The assistant can look at the actual thumbnails and
 captions to reason about visual flow the way a viewer scrolling your grid
 would.
 
+## 4. Auto-pick and apply carousel covers (experimental)
+
+```bash
+export ANTHROPIC_API_KEY=sk-ant-...   # or OPENAI_API_KEY=sk-...
+npm install @anthropic-ai/sdk         # or: npm install openai
+npm run auto-cover -- your_username --limit 20
+```
+
+This walks your carousel posts, reads every slide in each one, asks a vision
+model which slide would make the strongest cover, and reports what it would
+change to `output/cover-suggestions.json`.
+
+**It runs as a dry run by default and does not touch your live posts.** Pass
+`--apply` once you've reviewed `cover-suggestions.json` and want it to try
+applying a change for real.
+
+Read this before expecting `--apply` to do anything:
+
+> As far as we can tell, Instagram's normal "Edit" screen for a published
+> carousel post only lets you change the caption, location, tagged people,
+> and alt text — **not** which slide is the cover or the slide order. (Reels
+> have a separate "Edit cover" feature for the video thumbnail; that's
+> unrelated.) `src/editCover.js` checks for a real reorder control before
+> doing anything and reports `"unsupported"` instead of pretending to
+> succeed if it can't find one.
+>
+> Worth a 30-second check on your own account: open one of your carousel
+> posts, tap `···` → `Edit`, and see if there's any option to reorder slides
+> or change the cover. If Instagram *has* added that recently, tell me what
+> it looks like (a screenshot helps) and `attemptCoverChange()` can be wired
+> up to actually drive it — right now it deliberately stops short of
+> guessing at drag coordinates for a control that might not exist.
+
+## 5. Or: a bookmarklet, no local install at all
+
+If you don't want to run anything locally, `web/index.html` is a bookmarklet
+install page instead: you log into instagram.com yourself as normal, click a
+bookmark while on your profile, and the code runs directly inside that
+already-authenticated tab — no separate login, no server, this repo never
+sees your session. It currently only reports cover suggestions in an on-page
+panel (no auto-apply yet, for the same reason noted above).
+
+This is genuinely something GitHub Pages can host, since it's just static
+files — but this repo's Pages workflow (`.github/workflows/pages.yml`) only
+deploys on pushes to `main`, so it'll be live at
+`<pages-url>/instagram-post-curator/web/` once this branch is merged. Until
+then, test it by serving the folder locally (`npx serve
+instagram-post-curator/web`) and opening it in a browser — bookmarklets work
+the same regardless of where the install page is hosted, since only the
+Instagram tab's origin matters once it's clicked.
+
 ## Notes and limits
 
 - This is meant for reviewing **your own** account. Don't point it at other
