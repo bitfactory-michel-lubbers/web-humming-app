@@ -16,175 +16,299 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <style>
   :root{
-    --bg:#0f1115; --panel:#171a21; --accent:#6ee7b7; --accent2:#60a5fa;
-    --text:#e6e8ec; --muted:#8a8f98; --danger:#f87171;
+    color-scheme: dark;
+
+    --font: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+
+    --bg: oklch(15.5% 0.014 262);
+    --surface: oklch(20% 0.016 262);
+    --surface-2: oklch(24% 0.018 262);
+    --surface-3: oklch(29% 0.02 262);
+    --border: oklch(32% 0.02 262);
+    --border-strong: oklch(42% 0.024 262);
+
+    --ink: oklch(95% 0.006 262);
+    --ink-muted: oklch(72% 0.02 262);
+    --ink-faint: oklch(56% 0.018 262);
+
+    --accent: oklch(78% 0.16 165);
+    --accent-strong: oklch(70% 0.17 165);
+    --accent-ink: oklch(16% 0.03 165);
+
+    --danger: oklch(68% 0.19 22);
+    --danger-strong: oklch(60% 0.2 22);
+    --danger-ink: oklch(14% 0.02 22);
+
+    --info: oklch(75% 0.13 235);
+
+    --radius-sm: 8px;
+    --radius-md: 12px;
+    --radius-lg: 16px;
+
+    --space-2: .5rem;
+    --space-3: .75rem;
+    --space-4: 1rem;
+    --space-5: 1.5rem;
+    --space-6: 2rem;
+    --space-7: 2.5rem;
+
+    --fs-2xs: .6875rem;
+    --fs-xs: .75rem;
+    --fs-sm: .8125rem;
+    --fs-base: .9375rem;
+    --fs-md: 1rem;
+    --fs-lg: 1.125rem;
+    --fs-xl: 1.375rem;
+
+    --ease-out: cubic-bezier(.22,1,.36,1);
+    --dur-fast: 150ms;
+    --dur-base: 200ms;
   }
+
   *{box-sizing:border-box;}
+
   body{
-    margin:0; font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
-    background:var(--bg); color:var(--text); padding:24px 16px 60px;
+    margin:0;
+    font-family:var(--font);
+    font-size:var(--fs-base);
+    line-height:1.5;
+    background:var(--bg); color:var(--ink);
+    padding:var(--space-6) var(--space-4) var(--space-7);
+    -webkit-font-smoothing:antialiased;
   }
-  .wrap{max-width:780px; margin:0 auto;}
-  h1{font-size:1.4rem; margin:0 0 4px;}
-  p.sub{color:var(--muted); margin:0 0 24px; font-size:0.9rem;}
+
+  .wrap{max-width:640px; margin:0 auto;}
+
+  .app-header{margin-bottom:var(--space-5);}
+  .app-title{
+    display:flex; align-items:center; gap:var(--space-2);
+    font-size:var(--fs-xl); font-weight:700; letter-spacing:-0.01em;
+    margin:0 0 var(--space-2);
+  }
+  .app-icon{font-size:1.1em; line-height:1;}
+  .app-sub{color:var(--ink-muted); font-size:var(--fs-sm); margin:0; max-width:60ch;}
+
   .card{
-    background:var(--panel); border-radius:16px; padding:20px; margin-bottom:16px;
-    border:1px solid #262a33;
+    background:var(--surface); border:1px solid var(--border); border-radius:var(--radius-lg);
+    padding:var(--space-5); margin-bottom:var(--space-4);
   }
-  .row{display:flex; gap:12px; flex-wrap:wrap; align-items:center;}
-  label{font-size:0.85rem; color:var(--muted); display:block; margin-bottom:6px;}
-  input[type=text], select{
-    background:#0f1115; color:var(--text); border:1px solid #2b2f38; border-radius:10px;
-    padding:10px 12px; font-size:0.95rem; width:100%;
+
+  .step{
+    display:flex; align-items:center; gap:var(--space-3);
+    font-size:var(--fs-lg); font-weight:600; letter-spacing:-0.005em;
+    margin:0 0 var(--space-4);
   }
-  button{
-    border:none; border-radius:10px; padding:12px 20px; font-size:0.95rem; font-weight:600;
-    cursor:pointer; transition:transform .1s ease, opacity .2s ease;
+  .step-num{
+    display:flex; align-items:center; justify-content:center; flex-shrink:0;
+    width:24px; height:24px; border-radius:50%;
+    background:var(--surface-3); color:var(--ink-muted);
+    font-size:var(--fs-xs); font-weight:700;
   }
-  button:active{transform:scale(0.97);}
-  button:disabled{opacity:0.4; cursor:not-allowed;}
-  .btn-record{background:var(--accent); color:#08120c;}
-  .btn-stop{background:var(--danger); color:#1a0505;}
-  .btn-secondary{background:#262a33; color:var(--text);}
-  .btn-sm{padding:8px 12px; font-size:0.82rem;}
-  .status{
-    display:flex; align-items:center; gap:10px; margin-top:14px; font-size:0.9rem; color:var(--muted);
+
+  .field{margin-bottom:var(--space-4);}
+  .field:last-child{margin-bottom:0;}
+  .field label{
+    display:block; font-size:var(--fs-sm); color:var(--ink-muted); margin-bottom:var(--space-2);
   }
-  .dot{width:10px; height:10px; border-radius:50%; background:#3a3f4a;}
-  .dot.live{background:var(--danger); box-shadow:0 0 0 0 rgba(248,113,113,.7); animation:pulse 1.2s infinite;}
+
+  input[type=text], input[type=file], select{
+    width:100%; font:inherit; font-size:var(--fs-base);
+    background:var(--surface-2); color:var(--ink); border:1px solid var(--border);
+    border-radius:var(--radius-sm); padding:.65rem .8rem;
+    transition:border-color var(--dur-fast) var(--ease-out), background-color var(--dur-fast) var(--ease-out);
+  }
+  input[type=text]::placeholder{color:var(--ink-faint);}
+  input[type=text]:hover, select:hover{border-color:var(--border-strong);}
+  input[type=text]:focus-visible, select:focus-visible, input[type=file]:focus-visible{
+    outline:2px solid var(--accent); outline-offset:1px; border-color:var(--accent);
+  }
+
+  select{
+    appearance:none; padding-right:2.2rem;
+    background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'><path d='M1 1l4 4 4-4' stroke='%2393a0b3' stroke-width='1.6' fill='none' stroke-linecap='round' stroke-linejoin='round'/></svg>");
+    background-repeat:no-repeat; background-position:right .8rem center;
+  }
+
+  input[type=file]{font-size:var(--fs-sm); padding:.55rem .7rem;}
+  input[type=file]::file-selector-button{
+    background:var(--surface-3); color:var(--ink); border:1px solid var(--border);
+    border-radius:var(--radius-sm); padding:.4rem .7rem; margin-right:var(--space-3);
+    font:inherit; font-size:var(--fs-sm); cursor:pointer;
+  }
+
+  .actions{display:flex; gap:var(--space-3); flex-wrap:wrap; margin-bottom:var(--space-4);}
+  .actions:last-child{margin-bottom:0;}
+
+  .btn{
+    border:1px solid transparent; border-radius:var(--radius-md);
+    padding:.7rem 1.1rem; font:inherit; font-size:var(--fs-md); font-weight:600;
+    cursor:pointer; white-space:nowrap;
+    transition:background-color var(--dur-base) var(--ease-out), border-color var(--dur-base) var(--ease-out),
+      transform var(--dur-fast) var(--ease-out), opacity var(--dur-base) var(--ease-out);
+  }
+  .btn:active{transform:scale(.97);}
+  .btn:disabled{opacity:.4; cursor:not-allowed;}
+  .btn:focus-visible{outline:2px solid var(--info); outline-offset:2px;}
+
+  .btn-primary{background:var(--accent); color:var(--accent-ink);}
+  .btn-primary:hover:not(:disabled){background:var(--accent-strong);}
+
+  .btn-danger{background:var(--danger); color:var(--danger-ink);}
+  .btn-danger:hover:not(:disabled){background:var(--danger-strong);}
+
+  .btn-ghost{background:var(--surface-2); color:var(--ink); border-color:var(--border);}
+  .btn-ghost:hover:not(:disabled){background:var(--surface-3); border-color:var(--border-strong);}
+
+  .btn-sm{padding:.5rem .8rem; font-size:var(--fs-sm);}
+
+  .status-row{
+    display:flex; align-items:center; gap:var(--space-3);
+    font-size:var(--fs-sm); color:var(--ink-muted); margin-top:var(--space-4);
+  }
+  .dot{width:9px; height:9px; border-radius:50%; background:var(--surface-3); flex-shrink:0;}
+  .dot.live{background:var(--danger); animation:pulse 1.2s infinite;}
   @keyframes pulse{
-    0%{box-shadow:0 0 0 0 rgba(248,113,113,.6);}
-    70%{box-shadow:0 0 0 10px rgba(248,113,113,0);}
-    100%{box-shadow:0 0 0 0 rgba(248,113,113,0);}
+    0%{box-shadow:0 0 0 0 oklch(68% 0.19 22 / .55);}
+    70%{box-shadow:0 0 0 8px oklch(68% 0.19 22 / 0);}
+    100%{box-shadow:0 0 0 0 oklch(68% 0.19 22 / 0);}
   }
-  #notation{background:#fff; border-radius:12px; padding:10px; overflow-x:auto; margin-top:16px; min-height:120px;}
-  #notation canvas{display:block; margin:0 auto;}
-  .empty-hint{color:var(--muted); font-size:0.85rem; padding:20px; text-align:center;}
-  .meter{height:6px; background:#0f1115; border-radius:4px; overflow:hidden; margin-top:10px;}
-  .meter-fill{height:100%; width:0%; background:linear-gradient(90deg,var(--accent2),var(--accent)); transition:width .05s linear;}
-  .footer-note{font-size:0.78rem; color:var(--muted); margin-top:20px; line-height:1.5;}
-  .section-title{font-size:0.95rem; font-weight:600; margin:0 0 12px;}
-  .track{
-    display:flex; align-items:center; gap:10px; background:#0f1115; border:1px solid #2b2f38;
-    border-radius:12px; padding:10px 12px; margin-bottom:10px;
+
+  .meter{height:5px; background:var(--surface-2); border-radius:3px; overflow:hidden; margin-top:var(--space-3);}
+  .meter-fill{height:100%; width:0%; background:linear-gradient(90deg, var(--info), var(--accent)); transition:width 60ms linear;}
+
+  .divider{
+    display:flex; align-items:center; gap:var(--space-3);
+    color:var(--ink-faint); font-size:var(--fs-xs); margin:var(--space-5) 0 var(--space-4);
   }
-  .track-num{
-    width:26px; height:26px; border-radius:50%; background:#262a33; color:var(--accent);
-    display:flex; align-items:center; justify-content:center; font-size:0.8rem; font-weight:700; flex-shrink:0;
-  }
-  .track input[type=text]{flex:1.2; min-width:100px; padding:8px 10px; font-size:0.88rem;}
-  .track select{flex:1; min-width:120px; padding:8px 10px; font-size:0.88rem;}
-  .track .meta{font-size:0.75rem; color:var(--muted); white-space:nowrap;}
-  .track-remove{
-    background:none; color:var(--danger); border:none; font-size:1.1rem; padding:4px 8px; cursor:pointer;
-  }
-  .empty-tracks{color:var(--muted); font-size:0.85rem; text-align:center; padding:14px;}
+  .divider::before, .divider::after{content:''; flex:1; border-top:1px solid var(--border);}
+
+  .hint{font-size:var(--fs-xs); color:var(--ink-faint); margin:var(--space-2) 0 0;}
+
   .mic-banner{
-    border-radius:10px; padding:12px 14px; font-size:0.85rem; line-height:1.5; margin-bottom:14px;
+    border-radius:var(--radius-sm); padding:var(--space-3) var(--space-4);
+    font-size:var(--fs-sm); line-height:1.55; margin-bottom:var(--space-4);
+    border:1px solid transparent;
   }
-  .mic-banner.warn{background:#2a1f10; border:1px solid #6b4a12; color:#f5c98a;}
-  .mic-banner.error{background:#2a1414; border:1px solid #6b1f1f; color:#f7a8a8;}
-  .mic-banner.ok{background:#10241a; border:1px solid #1f6b3d; color:#8af7bd;}
-  .mic-banner code{background:rgba(255,255,255,0.08); padding:1px 5px; border-radius:4px;}
+  .mic-banner.warn{background:oklch(24% 0.05 80); border-color:oklch(38% 0.08 80); color:oklch(85% 0.1 80);}
+  .mic-banner.error{background:oklch(24% 0.06 22); border-color:oklch(38% 0.1 22); color:oklch(85% 0.1 22);}
+  .mic-banner.ok{background:oklch(24% 0.05 165); border-color:oklch(38% 0.08 165); color:oklch(85% 0.1 165);}
+  .mic-banner code{background:oklch(100% 0 0 / .08); padding:.1em .35em; border-radius:4px; font-size:.92em;}
   .mic-banner a{color:inherit; text-decoration:underline;}
-  .upload-divider{
-    display:flex; align-items:center; text-align:center; color:var(--muted); font-size:0.8rem;
-    margin:18px 0 14px;
+
+  .track{
+    display:flex; flex-wrap:wrap; align-items:center; gap:var(--space-3);
+    background:var(--surface-2); border:1px solid var(--border);
+    border-radius:var(--radius-md); padding:var(--space-3); margin-bottom:var(--space-3);
+    animation:trackIn var(--dur-base) var(--ease-out) both;
   }
-  .upload-divider::before, .upload-divider::after{
-    content:''; flex:1; border-bottom:1px solid #262a33;
+  .track:last-child{margin-bottom:0;}
+  @keyframes trackIn{from{opacity:0; transform:translateY(4px);} to{opacity:1; transform:translateY(0);}}
+
+  .track-num{
+    display:flex; align-items:center; justify-content:center; flex-shrink:0;
+    width:24px; height:24px; border-radius:50%;
+    background:var(--surface-3); color:var(--accent);
+    font-size:var(--fs-xs); font-weight:700;
   }
-  .upload-divider span{padding:0 10px;}
-  input[type=file]{
-    background:#0f1115; color:var(--text); border:1px solid #2b2f38; border-radius:10px;
-    padding:10px 12px; font-size:0.85rem; width:100%;
+  .track input[type=text]{flex:1 1 140px; min-width:0; padding:.5rem .7rem; font-size:var(--fs-sm);}
+  .track select{flex:1 1 120px; min-width:0; padding:.5rem .7rem; font-size:var(--fs-sm); padding-right:1.9rem;}
+  .track .meta{font-size:var(--fs-2xs); color:var(--ink-faint); white-space:nowrap; flex-shrink:0;}
+  .track-remove{
+    background:none; border:none; color:var(--ink-faint);
+    font-size:1rem; line-height:1; padding:var(--space-2); border-radius:var(--radius-sm);
+    cursor:pointer; flex-shrink:0;
+    transition:color var(--dur-fast) var(--ease-out), background-color var(--dur-fast) var(--ease-out);
   }
-  .hint{font-size:0.75rem; color:var(--muted); margin-top:6px;}
-  .raw-output{
-    background:#000; color:#8af7bd; border-radius:10px; padding:12px 14px; font-size:0.78rem;
-    margin-top:12px; white-space:pre-wrap; word-break:break-word; border:1px solid #262a33;
+  .track-remove:hover{color:var(--danger); background:oklch(68% 0.19 22 / .12);}
+
+  .empty-tracks, .empty-hint{
+    color:var(--ink-faint); font-size:var(--fs-sm); text-align:center; padding:var(--space-5);
+  }
+
+  #notation{
+    background:oklch(98% 0.003 90); border:1px solid oklch(90% 0.006 90);
+    border-radius:var(--radius-md); padding:var(--space-3); overflow-x:auto; min-height:120px;
+  }
+  #notation canvas{display:block; margin:0 auto;}
+  #notation .empty-hint{color:oklch(55% 0.01 90);}
+
+  .footnote{
+    font-size:var(--fs-xs); color:var(--ink-faint); line-height:1.6;
+    margin:var(--space-5) 0 0; padding-top:var(--space-4); border-top:1px solid var(--border);
+  }
+
+  @media (prefers-reduced-motion: reduce){
+    .btn, input, select, .track-remove{transition:none;}
+    .btn:active{transform:none;}
+    .dot.live{animation:none; box-shadow:none;}
+    .track{animation:none;}
   }
 </style>
 </head>
 <body>
 <div class="wrap">
-  <h1>🎵 Hum to Sheet Music</h1>
-  <p class="sub">Record one melody line ("track") at a time — hummed, sung, or played — and build up a multi-part score. Each track gets its own instrument.</p>
+  <header class="app-header">
+    <h1 class="app-title"><span class="app-icon" aria-hidden="true">🎵</span>Hum to Sheet Music</h1>
+    <p class="app-sub">Record one melody line ("track") at a time — hummed, sung, or played — and build up a multi-part score. Each track gets its own instrument.</p>
+  </header>
 
-  <div class="card">
-    <div class="section-title">0. Raw microphone request (proof)</div>
-    <p style="font-size:0.82rem; color:var(--muted); margin-top:0;">
-      This button calls the exact standard JavaScript API — <code>navigator.mediaDevices.getUserMedia({audio:true})</code> —
-      the same one used for the recorder below, and the same kind of call used for geolocation, camera, etc.
-      It prints exactly what the browser returns, unfiltered.
-    </p>
-    <button id="rawRequestBtn" class="btn-record">🎤 Call getUserMedia() now</button>
-    <pre id="rawOutput" class="raw-output">(nothing requested yet)</pre>
-  </div>
-
-  <div class="card">
-    <div class="section-title">1. Record a track</div>
+  <section class="card">
+    <h2 class="step"><span class="step-num">1</span>Record a track</h2>
     <div id="micBanner" class="mic-banner" style="display:none;"></div>
-    <div class="row">
-      <div style="flex:1; min-width:180px;">
-        <label for="instrumentSelect">Instrument for this track</label>
-        <select id="instrumentSelect">
-          <option value="vocals">Vocals</option>
-          <option value="piano">Piano</option>
-          <option value="guitar">Guitar</option>
-          <option value="violin">Violin</option>
-          <option value="flute">Flute</option>
-          <option value="cello">Cello</option>
-          <option value="bass">Bass guitar</option>
-        </select>
-      </div>
+    <div class="field">
+      <label for="instrumentSelect">Instrument for this track</label>
+      <select id="instrumentSelect">
+        <option value="vocals">Vocals</option>
+        <option value="piano">Piano</option>
+        <option value="guitar">Guitar</option>
+        <option value="violin">Violin</option>
+        <option value="flute">Flute</option>
+        <option value="cello">Cello</option>
+        <option value="bass">Bass guitar</option>
+      </select>
     </div>
-    <div class="row" style="margin-top:14px;">
-      <button id="recordBtn" class="btn-record">● Start recording (live mic)</button>
-      <button id="stopBtn" class="btn-stop" disabled>■ Stop</button>
-      <button id="checkMicBtn" class="btn-secondary btn-sm">🎤 Check microphone access</button>
+    <div class="actions">
+      <button id="recordBtn" class="btn btn-primary">● Start recording (live mic)</button>
+      <button id="stopBtn" class="btn btn-danger" disabled>■ Stop</button>
+      <button id="checkMicBtn" class="btn btn-ghost btn-sm">🎤 Check microphone access</button>
     </div>
-    <div class="status">
-      <div class="dot" id="statusDot"></div>
+    <div class="status-row">
+      <span class="dot" id="statusDot"></span>
       <span id="statusText">Not recording</span>
     </div>
     <div class="meter"><div class="meter-fill" id="meterFill"></div></div>
 
-    <div class="upload-divider"><span>or</span></div>
+    <div class="divider"><span>or</span></div>
 
-    <div class="row">
-      <div style="flex:1; min-width:220px;">
-        <label for="audioFileInput">Upload a recording instead (works even when live mic is blocked)</label>
-        <input type="file" id="audioFileInput" accept="audio/*">
-        <div class="hint">Record with your phone's Voice Memos / Recorder app (hum or play one line), save it, then upload it here.</div>
-      </div>
+    <div class="field">
+      <label for="audioFileInput">Upload a recording instead (works even when live mic is blocked)</label>
+      <input type="file" id="audioFileInput" accept="audio/*">
+      <p class="hint">Record with your phone's Voice Memos / Recorder app (hum or play one line), save it, then upload it here.</p>
     </div>
-  </div>
+  </section>
 
-  <div class="card">
-    <div class="section-title">2. Tracks in this score</div>
+  <section class="card">
+    <h2 class="step"><span class="step-num">2</span>Tracks in this score</h2>
     <div id="trackList"><div class="empty-tracks">No tracks yet — record one above.</div></div>
-  </div>
+  </section>
 
-  <div class="card">
-    <div class="section-title">3. Score details &amp; export</div>
-    <div class="row">
-      <div style="flex:1; min-width:180px;">
-        <label for="titleInput">Score title (optional)</label>
-        <input type="text" id="titleInput" placeholder="My song">
-      </div>
+  <section class="card">
+    <h2 class="step"><span class="step-num">3</span>Score details &amp; export</h2>
+    <div class="field">
+      <label for="titleInput">Score title (optional)</label>
+      <input type="text" id="titleInput" placeholder="My song">
     </div>
-    <div class="row" style="margin-top:14px;">
-      <button id="downloadBtn" class="btn-secondary" disabled>⬇ Download PDF (all tracks)</button>
+    <div class="actions">
+      <button id="downloadBtn" class="btn btn-ghost" disabled>⬇ Download PDF (all tracks)</button>
     </div>
-  </div>
+  </section>
 
-  <div class="card">
-    <div class="section-title">4. Combined sheet music</div>
+  <section class="card">
+    <h2 class="step"><span class="step-num">4</span>Combined sheet music</h2>
     <div id="notation"><div class="empty-hint">Record and add tracks above to generate the score here.</div></div>
-  </div>
+  </section>
 
-  <p class="footer-note">
+  <p class="footnote">
     Each track transcribes <strong>your own recorded melody</strong> (single line, one note at a time) using pitch detection —
     it does not identify existing songs or reproduce anyone else's copyrighted sheet music. Tracks are recorded and
     quantized independently (fixed 120bpm/4-4 grid) and shown stacked as separate parts; they are not aligned bar-for-bar
@@ -282,35 +406,6 @@ function checkEnvironment(){
 
 checkEnvironment();
 
-const rawRequestBtn = document.getElementById('rawRequestBtn');
-const rawOutput = document.getElementById('rawOutput');
-
-rawRequestBtn.addEventListener('click', async () => {
-  const log = [];
-  log.push('> navigator.mediaDevices.getUserMedia({audio:true})');
-  log.push('location: ' + location.href);
-  log.push('location.protocol: ' + location.protocol);
-  log.push('window.isSecureContext: ' + window.isSecureContext);
-  log.push('window.self === window.top (not in an iframe): ' + (window.self === window.top));
-  log.push('navigator.mediaDevices exists: ' + !!navigator.mediaDevices);
-  log.push('---');
-  rawOutput.textContent = log.join('\n') + '\ncalling now…';
-
-  try{
-    const t0 = performance.now();
-    const stream = await navigator.mediaDevices.getUserMedia({audio:true});
-    const ms = Math.round(performance.now() - t0);
-    log.push(`✅ SUCCESS after ${ms}ms`);
-    log.push('stream.id: ' + stream.id);
-    log.push('audio tracks: ' + stream.getAudioTracks().map(t => t.label || '(unlabeled mic)').join(', '));
-    stream.getTracks().forEach(tr => tr.stop());
-  }catch(err){
-    log.push('❌ REJECTED');
-    log.push('err.name: ' + err.name);
-    log.push('err.message: ' + err.message);
-  }
-  rawOutput.textContent = log.join('\n');
-});
 checkMicBtn.addEventListener('click', async () => {
   if (!checkEnvironment()) return;
   try{
